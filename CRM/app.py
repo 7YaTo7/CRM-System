@@ -13,97 +13,103 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Инициализация базы данных
 init_db(app)
 
+# Контекстный процессор для передачи текущего времени в шаблоны
+@app.context_processor
+def inject_now():
+    return {'now': datetime.now()}
+
 def create_sample_data():
     """Создание тестовых данных"""
-    # Проверяем, есть ли уже клиенты в базе
-    if Customer.query.count() > 0:
-        return
-    
-    # Список тестовых клиентов
-    sample_customers = [
-        # Фамилия, Имя, Отчество, Email, Телефон, Дата регистрации, Примечания
-        ('Иванов', 'Александр', 'Петрович', 'ivanov@mail.ru', '+79161234567', '2024-01-15', 'Постоянный клиент'),
-        ('Петрова', 'Мария', 'Сергеевна', 'petrova@gmail.com', '+79162345678', '2024-01-20', 'Корпоративный клиент'),
-        ('Сидоров', 'Дмитрий', 'Игоревич', 'sidorov@yandex.ru', '+79163456789', '2024-02-05', 'Новый клиент'),
-        ('Кузнецова', 'Ольга', 'Владимировна', 'kuznetsova@mail.ru', '+79164567890', '2024-02-10', 'VIP клиент'),
-        ('Попов', 'Сергей', 'Александрович', 'popov@gmail.com', '+79165678901', '2024-02-15', 'Частый заказчик'),
-        ('Васильева', 'Елена', 'Дмитриевна', 'vasileva@yandex.ru', '+79166789012', '2024-02-20', 'Оптовый покупатель'),
-        ('Смирнов', 'Андрей', 'Викторович', 'smirnov@mail.ru', '+79167890123', '2024-03-01', 'Мелкий опт'),
-        ('Федорова', 'Наталья', 'Павловна', 'fedorova@gmail.com', '+79168901234', '2024-03-05', 'Розничный клиент'),
-        ('Морозов', 'Иван', 'Сергеевич', 'morozov@yandex.ru', '+79169012345', '2024-03-10', 'Новый'),
-        ('Новикова', 'Татьяна', 'Ивановна', 'novikova@mail.ru', '+79160123456', '2024-03-15', 'По рекомендации'),
-        ('Волков', 'Павел', 'Олегович', 'volkov@gmail.com', '+79161234567', '2024-03-20', 'Корпоративный'),
-        ('Алексеева', 'Светлана', 'Михайловна', 'alekseeva@yandex.ru', '+79162345678', '2024-03-25', 'Постоянный'),
-        ('Лебедев', 'Максим', 'Андреевич', 'lebedev@mail.ru', '+79163456789', '2024-04-01', 'VIP'),
-        ('Козлова', 'Анна', 'Витальевна', 'kozlova@gmail.com', '+79164567890', '2024-04-05', 'Частый'),
-        ('Семенов', 'Виктор', 'Николаевич', 'semenov@yandex.ru', '+79165678901', '2024-04-10', 'Оптовый')
-    ]
-    
-    # Список тестовых товаров для заказов
-    sample_products = [
-        ('Ноутбук Lenovo', 1, 45000.00),
-        ('Мышь компьютерная', 2, 1500.00),
-        ('Клавиатура механическая', 1, 3500.00),
-        ('Монитор 24"', 1, 18000.00),
-        ('Наушники беспроводные', 1, 7000.00),
-        ('Смартфон Samsung', 1, 35000.00),
-        ('Планшет Apple', 1, 45000.00),
-        ('Принтер лазерный', 1, 12000.00),
-        ('Веб-камера', 1, 3000.00),
-        ('Флеш-накопитель 64GB', 3, 2500.00),
-        ('Внешний жесткий диск 1TB', 1, 5000.00),
-        ('Колонки Bluetooth', 1, 6000.00),
-        ('Роутер Wi-Fi', 1, 4000.00),
-        ('Игровая консоль', 1, 30000.00),
-        ('Умные часы', 1, 8000.00)
-    ]
-    
-    # Статусы заказов
-    order_statuses = ['Новый', 'В обработке', 'Выполнен', 'Отменен']
-    
-    try:
-        # Добавляем клиентов
-        customers = []
-        for customer_data in sample_customers:
-            customer = Customer(
-                last_name=customer_data[0],
-                first_name=customer_data[1],
-                middle_name=customer_data[2],
-                email=customer_data[3],
-                phone=customer_data[4],
-                registration_date=datetime.strptime(customer_data[5], '%Y-%m-%d').date(),
-                notes=customer_data[6]
-            )
-            db.session.add(customer)
-            customers.append(customer)
+    with app.app_context():
+        # Проверяем, есть ли уже клиенты в базе
+        if Customer.query.count() > 0:
+            return
         
-        db.session.commit()
+        # Список тестовых клиентов
+        sample_customers = [
+            # Фамилия, Имя, Отчество, Email, Телефон, Дата регистрации, Примечания
+            ('Иванов', 'Александр', 'Петрович', 'ivanov@mail.ru', '+79161234567', '2024-01-15', 'Постоянный клиент'),
+            ('Петрова', 'Мария', 'Сергеевна', 'petrova@gmail.com', '+79162345678', '2024-01-20', 'Корпоративный клиент'),
+            ('Сидоров', 'Дмитрий', 'Игоревич', 'sidorov@yandex.ru', '+79163456789', '2024-02-05', 'Новый клиент'),
+            ('Кузнецова', 'Ольга', 'Владимировна', 'kuznetsova@mail.ru', '+79164567890', '2024-02-10', 'VIP клиент'),
+            ('Попов', 'Сергей', 'Александрович', 'popov@gmail.com', '+79165678901', '2024-02-15', 'Частый заказчик'),
+            ('Васильева', 'Елена', 'Дмитриевна', 'vasileva@yandex.ru', '+79166789012', '2024-02-20', 'Оптовый покупатель'),
+            ('Смирнов', 'Андрей', 'Викторович', 'smirnov@mail.ru', '+79167890123', '2024-03-01', 'Мелкий опт'),
+            ('Федорова', 'Наталья', 'Павловна', 'fedorova@gmail.com', '+79168901234', '2024-03-05', 'Розничный клиент'),
+            ('Морозов', 'Иван', 'Сергеевич', 'morozov@yandex.ru', '+79169012345', '2024-03-10', 'Новый'),
+            ('Новикова', 'Татьяна', 'Ивановна', 'novikova@mail.ru', '+79160123456', '2024-03-15', 'По рекомендации'),
+            ('Волков', 'Павел', 'Олегович', 'volkov@gmail.com', '+79161234567', '2024-03-20', 'Корпоративный'),
+            ('Алексеева', 'Светлана', 'Михайловна', 'alekseeva@yandex.ru', '+79162345678', '2024-03-25', 'Постоянный'),
+            ('Лебедев', 'Максим', 'Андреевич', 'lebedev@mail.ru', '+79163456789', '2024-04-01', 'VIP'),
+            ('Козлова', 'Анна', 'Витальевна', 'kozlova@gmail.com', '+79164567890', '2024-04-05', 'Частый'),
+            ('Семенов', 'Виктор', 'Николаевич', 'semenov@yandex.ru', '+79165678901', '2024-04-10', 'Оптовый')
+        ]
         
-        # Добавляем заказы для клиентов
-        for i, customer in enumerate(customers):
-            # Каждый клиент получает 1-3 заказа
-            num_orders = random.randint(1, 3)
-            for j in range(num_orders):
-                product = random.choice(sample_products)
-                order_date = customer.registration_date + timedelta(days=random.randint(1, 30))
-                
-                order = Order(
-                    customer_id=customer.id,
-                    order_date=order_date,
-                    product_name=product[0],
-                    quantity=product[1],
-                    price=product[2],
-                    status=random.choice(order_statuses),
-                    notes=f'Заказ №{j+1} для {customer.first_name} {customer.last_name}'
+        # Список тестовых товаров для заказов
+        sample_products = [
+            ('Ноутбук Lenovo', 1, 45000.00),
+            ('Мышь компьютерная', 2, 1500.00),
+            ('Клавиатура механическая', 1, 3500.00),
+            ('Монитор 24"', 1, 18000.00),
+            ('Наушники беспроводные', 1, 7000.00),
+            ('Смартфон Samsung', 1, 35000.00),
+            ('Планшет Apple', 1, 45000.00),
+            ('Принтер лазерный', 1, 12000.00),
+            ('Веб-камера', 1, 3000.00),
+            ('Флеш-накопитель 64GB', 3, 2500.00),
+            ('Внешний жесткий диск 1TB', 1, 5000.00),
+            ('Колонки Bluetooth', 1, 6000.00),
+            ('Роутер Wi-Fi', 1, 4000.00),
+            ('Игровая консоль', 1, 30000.00),
+            ('Умные часы', 1, 8000.00)
+        ]
+        
+        # Статусы заказов
+        order_statuses = ['Новый', 'В обработке', 'Выполнен', 'Отменен']
+        
+        try:
+            # Добавляем клиентов
+            customers = []
+            for customer_data in sample_customers:
+                customer = Customer(
+                    last_name=customer_data[0],
+                    first_name=customer_data[1],
+                    middle_name=customer_data[2],
+                    email=customer_data[3],
+                    phone=customer_data[4],
+                    registration_date=datetime.strptime(customer_data[5], '%Y-%m-%d').date(),
+                    notes=customer_data[6]
                 )
-                db.session.add(order)
-        
-        db.session.commit()
-        print("✅ Тестовые данные успешно созданы!")
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"❌ Ошибка при создании тестовых данных: {e}")
+                db.session.add(customer)
+                customers.append(customer)
+            
+            db.session.commit()
+            
+            # Добавляем заказы для клиентов
+            for i, customer in enumerate(customers):
+                # Каждый клиент получает 1-3 заказа
+                num_orders = random.randint(1, 3)
+                for j in range(num_orders):
+                    product = random.choice(sample_products)
+                    order_date = customer.registration_date + timedelta(days=random.randint(1, 30))
+                    
+                    order = Order(
+                        customer_id=customer.id,
+                        order_date=order_date,
+                        product_name=product[0],
+                        quantity=product[1],
+                        price=product[2],
+                        status=random.choice(order_statuses),
+                        notes=f'Заказ №{j+1} для {customer.first_name} {customer.last_name}'
+                    )
+                    db.session.add(order)
+            
+            db.session.commit()
+            print("✅ Тестовые данные успешно созданы!")
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ Ошибка при создании тестовых данных: {e}")
 
 # Главная страница - список клиентов
 @app.route('/')
@@ -123,7 +129,15 @@ def index():
     else:
         customers = Customer.query.paginate(page=page, per_page=10, error_out=False)
     
-    return render_template('customers.html', customers=customers, search_query=search_query)
+    # Подсчет статистики для отображения
+    total_customers = Customer.query.count()
+    total_orders = Order.query.count()
+    
+    return render_template('customers.html', 
+                         customers=customers, 
+                         search_query=search_query,
+                         total_customers=total_customers,
+                         total_orders=total_orders)
 
 # Добавление нового клиента
 @app.route('/customer/new', methods=['GET', 'POST'])
@@ -322,27 +336,31 @@ def reports():
     
     if start_date:
         try:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-            query = query.filter(Customer.registration_date >= start_date)
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+            query = query.filter(Customer.registration_date >= start_date_obj)
         except ValueError:
             flash('Неверный формат начальной даты', 'error')
     
     if end_date:
         try:
-            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-            query = query.filter(Customer.registration_date <= end_date)
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+            query = query.filter(Customer.registration_date <= end_date_obj)
         except ValueError:
             flash('Неверный формат конечной даты', 'error')
     
     customers = query.all()
     
-    # Статистика
-    total_customers = len(customers)
-    total_orders = sum(len(customer.orders) for customer in customers)
-    total_revenue = sum(
-        sum(order.quantity * order.price for order in customer.orders)
-        for customer in customers
-    )
+    # Статистика - исправленный подсчет
+    total_customers = len(customers)  # Теперь customers - это список
+    
+    # Правильный подсчет заказов и выручки
+    total_orders = 0
+    total_revenue = 0.0
+    
+    for customer in customers:
+        total_orders += len(customer.orders)
+        for order in customer.orders:
+            total_revenue += order.quantity * order.price
     
     return render_template('reports.html', 
                          customers=customers,
@@ -380,7 +398,6 @@ def api_customer_search():
     return jsonify(results)
 
 if __name__ == '__main__':
-    # Создаем тестовые данные в контексте приложения
-    with app.app_context():
-        create_sample_data()
+    # Создаем тестовые данные при первом запуске
+    create_sample_data()
     app.run(debug=True)
