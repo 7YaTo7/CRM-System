@@ -176,6 +176,34 @@ def new_order(customer_id):
     
     return redirect(url_for('customer_orders', customer_id=customer_id))
 
+# Обновление статуса заказа
+@app.route('/order/<int:order_id>/update_status', methods=['POST'])
+def update_order_status(order_id):
+    """Обновление статуса заказа"""
+    try:
+        new_status = request.form['status']
+        
+        # Проверяем допустимые статусы
+        allowed_statuses = ['Новый', 'В обработке', 'Выполнен', 'Отменен']
+        if new_status not in allowed_statuses:
+            flash('Недопустимый статус заказа', 'error')
+            return redirect(request.referrer or url_for('index'))
+        
+        # Находим заказ и обновляем статус
+        order = Order.query.get_or_404(order_id)
+        order.status = new_status
+        db.session.commit()
+        
+        flash(f'Статус заказа обновлен на: {new_status}', 'success')
+        
+        # Возвращаем обратно к заказам клиента
+        return redirect(url_for('customer_orders', customer_id=order.customer_id))
+            
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при обновлении статуса: {str(e)}', 'error')
+        return redirect(request.referrer or url_for('index'))
+
 # Удаление заказа
 @app.route('/order/<int:order_id>/delete', methods=['POST'])
 def delete_order(order_id):
@@ -259,5 +287,4 @@ def api_customer_search():
     return jsonify(results)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
-    
+    app.run(debug=True)

@@ -14,30 +14,30 @@
     <div class="card-body">
         <form method="post" action="{{ url_for('new_order', customer_id=customer.id) }}">
             <div class="row">
-                <div class="col-md-3">
-                    <label for="product_name" class="form-label">Наименование товара *</label>
-                    <input type="text" class="form-control" id="product_name" name="product_name" required>
+                <div class="col-md-4">
+                    <label class="form-label">Наименование товара *</label>
+                    <input type="text" class="form-control" name="product_name" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="quantity" class="form-label">Количество *</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                    <label class="form-label">Количество *</label>
+                    <input type="number" class="form-control" name="quantity" min="1" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="price" class="form-label">Цена *</label>
-                    <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                    <label class="form-label">Цена *</label>
+                    <input type="number" class="form-control" name="price" step="0.01" min="0" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="status" class="form-label">Статус</label>
-                    <select class="form-select" id="status" name="status">
+                    <label class="form-label">Статус</label>
+                    <select class="form-select" name="status">
                         <option value="Новый">Новый</option>
                         <option value="В обработке">В обработке</option>
                         <option value="Выполнен">Выполнен</option>
                         <option value="Отменен">Отменен</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="notes" class="form-label">Примечания</label>
-                    <input type="text" class="form-control" id="notes" name="notes">
+                <div class="col-md-2">
+                    <label class="form-label">Примечания</label>
+                    <input type="text" class="form-control" name="notes">
                 </div>
             </div>
             <button type="submit" class="btn btn-primary mt-3">Добавить заказ</button>
@@ -70,13 +70,14 @@
                 <td>{{ "%.2f"|format(order.price) }} руб.</td>
                 <td>{{ "%.2f"|format(order.quantity * order.price) }} руб.</td>
                 <td>
-                    <span class="badge 
-                        {% if order.status == 'Новый' %}bg-primary
-                        {% elif order.status == 'В обработке' %}bg-warning
-                        {% elif order.status == 'Выполнен' %}bg-success
-                        {% else %}bg-danger{% endif %}">
-                        {{ order.status }}
-                    </span>
+                    <form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" class="d-inline">
+                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="Новый" {% if order.status == 'Новый' %}selected{% endif %}>Новый</option>
+                            <option value="В обработке" {% if order.status == 'В обработке' %}selected{% endif %}>В обработке</option>
+                            <option value="Выполнен" {% if order.status == 'Выполнен' %}selected{% endif %}>Выполнен</option>
+                            <option value="Отменен" {% if order.status == 'Отменен' %}selected{% endif %}>Отменен</option>
+                        </select>
+                    </form>
                 </td>
                 <td>{{ order.notes or '-' }}</td>
                 <td>
