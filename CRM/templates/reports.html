@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Отчеты по клиентской базе</h1>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Фильтры</h5>
+    </div>
+    <div class="card-body">
+        <form method="get">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Дата регистрации с</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date.strftime('%Y-%m-%d') if start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">Дата регистрации по</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                           value="{{ end_date.strftime('%Y-%m-%d') if end_date }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Сформировать отчет</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h4 class="card-title">{{ total_customers }}</h4>
+                <p class="card-text">Всего клиентов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h4 class="card-title">{{ total_orders }}</h4>
+                <p class="card-text">Всего заказов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h4 class="card-title">{{ "%.2f"|format(total_revenue) }} руб.</h4>
+                <p class="card-text">Общая выручка</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Детальный отчет -->
+{% if customers %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Детальная информация по клиентам</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Дата регистрации</th>
+                        <th>Email</th>
+                        <th>Телефон</th>
+                        <th>Количество заказов</th>
+                        <th>Общая сумма заказов</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.last_name }} {{ customer.first_name }} {{ customer.middle_name or '' }}</td>
+                        <td>{{ customer.registration_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ customer.email or '-' }}</td>
+                        <td>{{ customer.phone or '-' }}</td>
+                        <td>{{ customer.orders|length }}</td>
+                        <td>{{ "%.2f"|format(customer.orders|sum(attribute='quantity') * customer.orders|sum(attribute='price')) }} руб.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Клиенты не найдены по заданным критериям.
+</div>
+{% endif %}
+{% endblock %}

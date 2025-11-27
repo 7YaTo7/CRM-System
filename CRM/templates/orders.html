@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Заказы клиента: {{ customer.last_name }} {{ customer.first_name }}</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Назад к списку</a>
+</div>
+
+<!-- Форма добавления заказа -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Добавить заказ</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('new_order', customer_id=customer.id) }}">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="product_name" class="form-label">Наименование товара *</label>
+                    <input type="text" class="form-control" id="product_name" name="product_name" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="quantity" class="form-label">Количество *</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="price" class="form-label">Цена *</label>
+                    <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Статус</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="Новый">Новый</option>
+                        <option value="В обработке">В обработке</option>
+                        <option value="Выполнен">Выполнен</option>
+                        <option value="Отменен">Отменен</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="notes" class="form-label">Примечания</label>
+                    <input type="text" class="form-control" id="notes" name="notes">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Добавить заказ</button>
+        </form>
+    </div>
+</div>
+
+<!-- Список заказов -->
+{% if customer.orders %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Дата заказа</th>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Примечания</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in customer.orders %}
+            <tr>
+                <td>{{ order.order_date.strftime('%d.%m.%Y') }}</td>
+                <td>{{ order.product_name }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>{{ "%.2f"|format(order.price) }} руб.</td>
+                <td>{{ "%.2f"|format(order.quantity * order.price) }} руб.</td>
+                <td>
+                    <span class="badge 
+                        {% if order.status == 'Новый' %}bg-primary
+                        {% elif order.status == 'В обработке' %}bg-warning
+                        {% elif order.status == 'Выполнен' %}bg-success
+                        {% else %}bg-danger{% endif %}">
+                        {{ order.status }}
+                    </span>
+                </td>
+                <td>{{ order.notes or '-' }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('delete_order', order_id=order.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить заказ?')">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    У этого клиента пока нет заказов.
+</div>
+{% endif %}
+{% endblock %}

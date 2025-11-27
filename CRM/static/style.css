@@ -1,0 +1,21 @@
+.table-responsive {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.alert {
+    border: none;
+    border-radius: 0.375rem;
+}
+
+.btn-group-sm > .btn {
+    border-radius: 0.25rem;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
