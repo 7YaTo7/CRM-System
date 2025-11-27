@@ -20,10 +20,35 @@
 
 ## Установка и запуск
 
-### 1. Клонирование репозитория
-bash
+# 1. Клонирование репозитория
 git clone <url-репозитория>
 cd CRM
-### 2. Установка зависимостей
-bash
+
+# 2. Установка зависимостей
 pip install -r requirements.txt
+
+## 2.1 Если файла requirements.txt нет, установите зависимости вручную:
+pip install flask flask-sqlalchemy
+
+# 3. Запуск приложения
+python app.py
+
+# 4. Открытие в браузере
+Перейдите по адресу:
+http://localhost:5001
+###
+###
+# Структура проекта
+CRM/
+### ├── app.py                 # Основное приложение
+### ├── database.py           # Модуль работы с БД
+### ├── models.py             # Модели данных
+### ├── requirements.txt      # Зависимости проекта
+### ├── templates/            # HTML шаблоны
+### │   ├── base.html
+### │   ├── customers.html
+### │   ├── customer_form.html
+### │   ├── orders.html
+### │   └── reports.html
+### └── static/
+###    └── style.css         # Стили CSS
