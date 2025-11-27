@@ -22,7 +22,7 @@
 
 # 1. Клонирование репозитория
 git clone <url-репозитория>
-cd CRM
+#### cd CRM
 
 # 2. Установка зависимостей
 pip install -r requirements.txt
