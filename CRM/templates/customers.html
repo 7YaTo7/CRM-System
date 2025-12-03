@@ -3,243 +3,136 @@
 {% block title %}Клиенты - CRM System{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <!-- Заголовок с цветами российского флага -->
-                <h1 class="h3 mb-2">
-                    <span class="russian-flag-text">
-                        <span class="flag-white">Управление клиентами.</span>
-                        <span class="flag-blue"> Все клиенты вашего бизнеса</span>
-                        <span class="flag-red"> в одном месте</span>
-                    </span>
-                </h1>
-                <p class="text-muted mb-0">Профессиональная CRM система для вашего бизнеса</p>
-            </div>
-            <a href="{{ url_for('new_customer') }}" class="btn btn-primary btn-lg">
-                <i class="bi bi-plus-circle me-2"></i>Добавить клиента
-            </a>
-        </div>
-    </div>
+<div class="header-actions">
+    <h2><i class="fas fa-user-friends"></i> Клиенты</h2>
+    <a href="{{ url_for('customer_form') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Новый клиент
+    </a>
 </div>
 
-<!-- Search Box -->
-<div class="card search-box mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-8">
-                <label class="form-label fw-bold">Поиск клиентов</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0">
-                        <i class="bi bi-search text-muted"></i>
-                    </span>
-                    <input type="text" name="search" class="form-control border-start-0" 
-                           placeholder="Введите фамилию, имя, email или телефон..." 
-                           value="{{ search_query }}">
-                </div>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-2"></i>Найти
+<div class="card">
+    <div class="search-section">
+        <form method="get" action="{{ url_for('customers') }}" class="search-form">
+            <div class="search-group">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}" 
+                       placeholder="Поиск клиентов..."
+                       class="search-input">
+                
+                <select name="search_by" class="search-select">
+                    <option value="all" {% if search_by == 'all' %}selected{% endif %}>По всем полям</option>
+                    <option value="date" {% if search_by == 'date' %}selected{% endif %}>По дате регистрации</option>
+                </select>
+                
+                <button type="submit" class="btn btn-search">
+                    <i class="fas fa-search"></i> Найти
                 </button>
-            </div>
-            <div class="col-md-2">
-                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Сбросить
+                
+                {% if search_query %}
+                <a href="{{ url_for('customers') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Сброс
                 </a>
+                {% endif %}
             </div>
         </form>
     </div>
 </div>
 
-<!-- Статистика - только общее количество клиентов и заказов -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="stat-card">
-            <div class="stat-number">{{ total_customers }}</div>
-            <div class="stat-label">Всего клиентов в системе</div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="stat-card">
-            <div class="stat-number">{{ total_orders }}</div>
-            <div class="stat-label">Всего заказов в системе</div>
-        </div>
-    </div>
-</div>
-
-<!-- Customers Table -->
+{% if customers %}
 <div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="bi bi-table me-2"></i>Список клиентов
-        </h5>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Фамилия</th>
+                    <th>Имя</th>
+                    <th>Телефон</th>
+                    <th>Email</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.id }}</td>
+                    <td>{{ customer.last_name }}</td>
+                    <td>{{ customer.first_name }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td>{{ customer.email or '-' }}</td>
+                    <td>{{ customer.registration_date.strftime('%d.%m.%Y') }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('customer_orders', customer_id=customer.id) }}" 
+                               class="btn-icon" 
+                               title="Заказы">
+                                <i class="fas fa-shopping-cart"></i>
+                            </a>
+                            <a href="{{ url_for('customer_form', customer_id=customer.id) }}" 
+                               class="btn-icon" 
+                               title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" 
+                                  action="{{ url_for('delete_customer', customer_id=customer.id) }}" 
+                                  onsubmit="return confirmDelete('Удалить клиента {{ customer.full_name() }}?')"
+                                  style="display: inline;">
+                                <button type="submit" class="btn-icon btn-danger" title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th><i class="bi bi-person me-1"></i>ФИО</th>
-                        <th><i class="bi bi-envelope me-1"></i>Контакты</th>
-                        <th><i class="bi bi-calendar me-1"></i>Дата регистрации</th>
-                        <th><i class="bi bi-cart me-1"></i>Заказы</th>
-                        <th><i class="bi bi-gear me-1"></i>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if customers and customers.items %}
-                        {% for customer in customers.items %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 40px; height: 40px; font-size: 0.9rem;">
-                                        {{ customer.first_name[0] }}{{ customer.last_name[0] }}
-                                    </div>
-                                    <div>
-                                        <strong>{{ customer.last_name }} {{ customer.first_name }}</strong>
-                                        {% if customer.middle_name %}
-                                        <br><small class="text-muted">{{ customer.middle_name }}</small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {% if customer.email %}
-                                <div><i class="bi bi-envelope me-1 text-primary"></i>{{ customer.email }}</div>
-                                {% endif %}
-                                {% if customer.phone %}
-                                <div><i class="bi bi-phone me-1 text-success"></i>{{ customer.phone }}</div>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <i class="bi bi-calendar-check me-1 text-info"></i>
-                                {{ customer.registration_date.strftime('%d.%m.%Y') }}
-                            </td>
-                            <td>
-                                <span class="badge bg-primary rounded-pill">
-                                    <i class="bi bi-cart me-1"></i>{{ customer.orders|length }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('customer_orders', customer_id=customer.id) }}" 
-                                       class="btn btn-outline-primary" 
-                                       data-bs-toggle="tooltip" title="Заказы">
-                                        <i class="bi bi-cart"></i>
-                                    </a>
-                                    <a href="{{ url_for('edit_customer', customer_id=customer.id) }}" 
-                                       class="btn btn-outline-warning"
-                                       data-bs-toggle="tooltip" title="Редактировать">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form method="post" action="{{ url_for('delete_customer', customer_id=customer.id) }}" 
-                                          class="d-inline">
-                                        <button type="submit" 
-                                                class="btn btn-outline-danger"
-                                                data-bs-toggle="tooltip" 
-                                                title="Удалить"
-                                                onclick="return confirm('Вы уверены, что хотите удалить клиента?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <div class="text-muted">
-                                    <i class="bi bi-people display-4 d-block mb-2"></i>
-                                    <h5>Клиенты не найдены</h5>
-                                    <p class="mb-0">Добавьте первого клиента или измените критерии поиска</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i class="fas fa-user-slash"></i>
+        <h3>Клиенты не найдены</h3>
+        <p>{% if search_query %}По вашему запросу ничего не найдено. Попробуйте изменить критерии поиска.{% else %}Нет добавленных клиентов.{% endif %}</p>
+        <a href="{{ url_for('customer_form') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Добавить первого клиента
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-value" id="total-customers">0</div>
+            <div class="stat-label">Всего клиентов</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="total-orders">0</div>
+            <div class="stat-label">Всего заказов</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="total-revenue">0</div>
+            <div class="stat-label">Общая выручка</div>
         </div>
     </div>
 </div>
-
-<!-- Pagination -->
-{% if customers and customers.pages > 1 %}
-<nav class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% for page_num in customers.iter_pages() %}
-            {% if page_num %}
-                <li class="page-item {% if page_num == customers.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=page_num, search=search_query) }}">
-                        {{ page_num }}
-                    </a>
-                </li>
-            {% else %}
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-</nav>
-{% endif %}
 {% endblock %}
 
-{% block extra_css %}
-<style>
-    /* Стили для текста цветами российского флага */
-    .russian-flag-text {
-        font-weight: 700;
-        font-size: 1.8rem;
-    }
-    
-    .flag-white {
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        background: linear-gradient(45deg, #333, #666);
-        padding: 2px 8px;
-        border-radius: 6px;
-    }
-    
-    .flag-blue {
-        color: #1c3578;
-        background: linear-gradient(45deg, #87ceeb, #b0e0e6);
-        padding: 2px 8px;
-        border-radius: 6px;
-        margin: 0 2px;
-    }
-    
-    .flag-red {
-        color: #d52b1e;
-        background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-        padding: 2px 8px;
-        border-radius: 6px;
-        margin: 0 2px;
-    }
-    
-    /* Адаптивность для мобильных устройств */
-    @media (max-width: 768px) {
-        .russian-flag-text {
-            font-size: 1.4rem;
-        }
-        
-        .flag-white,
-        .flag-blue,
-        .flag-red {
-            padding: 1px 4px;
-            margin: 0 1px;
-        }
-    }
-</style>
-{% endblock %}
-
-{% block extra_js %}
+{% block scripts %}
 <script>
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
+    // Загрузка статистики
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/statistics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-customers').textContent = data.total_customers;
+                document.getElementById('total-orders').textContent = data.total_orders;
+                document.getElementById('total-revenue').textContent = data.total_revenue.toFixed(2) + ' ₽';
+            });
+    });
 </script>
 {% endblock %}

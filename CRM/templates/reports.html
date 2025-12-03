@@ -1,100 +1,210 @@
 {% extends "base.html" %}
 
+{% block title %}Отчеты - CRM System{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Отчеты по клиентской базе</h1>
-
-<!-- Фильтры -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Фильтры</h5>
-    </div>
-    <div class="card-body">
-        <form method="get">
-            <div class="row">
-                <div class="col-md-4">
-                    <label for="start_date" class="form-label">Дата регистрации с</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" 
-                           value="{{ start_date.strftime('%Y-%m-%d') if start_date }}">
-                </div>
-                <div class="col-md-4">
-                    <label for="end_date" class="form-label">Дата регистрации по</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date"
-                           value="{{ end_date.strftime('%Y-%m-%d') if end_date }}">
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Сформировать отчет</button>
-                </div>
-            </div>
-        </form>
-    </div>
+<div class="header-actions">
+    <h2><i class="fas fa-chart-bar"></i> Отчеты</h2>
 </div>
 
-<!-- Статистика -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h4 class="card-title">{{ total_customers }}</h4>
-                <p class="card-text">Всего клиентов</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h4 class="card-title">{{ total_orders }}</h4>
-                <p class="card-text">Всего заказов</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <h4 class="card-title">{{ "%.2f"|format(total_revenue) }} руб.</h4>
-                <p class="card-text">Общая выручка</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Детальный отчет -->
-{% if customers %}
 <div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Детальная информация по клиентам</h5>
+    <h3><i class="fas fa-filter"></i> Фильтр заказов по дате</h3>
+    <form method="get" action="{{ url_for('reports') }}" class="form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="start_date">Начальная дата</label>
+                <input type="date" 
+                       id="start_date" 
+                       name="start_date" 
+                       value="{{ start_date }}"
+                       class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="end_date">Конечная дата</label>
+                <input type="date" 
+                       id="end_date" 
+                       name="end_date" 
+                       value="{{ end_date }}"
+                       class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Применить фильтр
+                </button>
+                {% if start_date or end_date %}
+                <a href="{{ url_for('reports') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Сбросить
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-shopping-cart"></i> Все заказы</h3>
+    
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Дата</th>
+                    <th>Клиент</th>
+                    <th>Товар/Услуга</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ order.order_date.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ order.customer.full_name() }}</td>
+                    <td>{{ order.product_name }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>{{ "%.2f"|format(order.price) }} ₽</td>
+                    <td>{{ "%.2f"|format(order.total_price) }} ₽</td>
+                    <td>
+                        <form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" class="status-form">
+                            <select name="status" class="status-select" onchange="this.form.submit()">
+                                <option value="active" {% if order.status == 'active' %}selected{% endif %}>Активный</option>
+                                <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Завершен</option>
+                                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Отменен</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('customer_orders', customer_id=order.customer_id) }}" 
+                               class="btn-icon" 
+                               title="Перейти к клиенту">
+                                <i class="fas fa-user"></i>
+                            </a>
+                            {% if order.notes %}
+                            <button class="btn-icon" 
+                                    title="Показать примечания" 
+                                    onclick="showOrderNotes('{{ order.id }}', '{{ order.product_name }}', '{{ order.notes }}')">
+                                <i class="fas fa-sticky-note"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ФИО</th>
-                        <th>Дата регистрации</th>
-                        <th>Email</th>
-                        <th>Телефон</th>
-                        <th>Количество заказов</th>
-                        <th>Общая сумма заказов</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for customer in customers %}
-                    <tr>
-                        <td>{{ customer.last_name }} {{ customer.first_name }} {{ customer.middle_name or '' }}</td>
-                        <td>{{ customer.registration_date.strftime('%d.%m.%Y') }}</td>
-                        <td>{{ customer.email or '-' }}</td>
-                        <td>{{ customer.phone or '-' }}</td>
-                        <td>{{ customer.orders|length }}</td>
-                        <td>{{ "%.2f"|format(customer.orders|sum(attribute='quantity') * customer.orders|sum(attribute='price')) }} руб.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-value">{{ orders|length }}</div>
+            <div class="stat-label">Всего заказов</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ "%.2f"|format(total_amount) }} ₽</div>
+            <div class="stat-label">Общая сумма</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">
+                {% if start_date and end_date %}
+                    {{ start_date }} - {{ end_date }}
+                {% else %}
+                    Все время
+                {% endif %}
+            </div>
+            <div class="stat-label">Период</div>
         </div>
     </div>
+    
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>Нет заказов</h3>
+        <p>{% if start_date and end_date %}За указанный период заказов не найдено.{% else %}В системе пока нет заказов.{% endif %}</p>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="alert alert-info">
-    Клиенты не найдены по заданным критериям.
+
+<div class="card">
+    <h4><i class="fas fa-chart-pie"></i> Статистика по статусам</h4>
+    <div class="customer-info">
+        {% if orders %}
+        <div class="info-item">
+            <strong>Активных заказов:</strong> 
+            {% set active_count = 0 %}
+            {% for order in orders %}
+                {% if order.status == 'active' %}
+                    {% set active_count = active_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            {{ active_count }} ({{ "%.1f"|format(active_count / orders|length * 100) }}%)
+        </div>
+        <div class="info-item">
+            <strong>Завершенных заказов:</strong> 
+            {% set completed_count = 0 %}
+            {% for order in orders %}
+                {% if order.status == 'completed' %}
+                    {% set completed_count = completed_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            {{ completed_count }} ({{ "%.1f"|format(completed_count / orders|length * 100) }}%)
+        </div>
+        <div class="info-item">
+            <strong>Отмененных заказов:</strong> 
+            {% set cancelled_count = 0 %}
+            {% for order in orders %}
+                {% if order.status == 'cancelled' %}
+                    {% set cancelled_count = cancelled_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            {{ cancelled_count }} ({{ "%.1f"|format(cancelled_count / orders|length * 100) }}%)
+        </div>
+        <div class="info-item">
+            <strong>Средний чек:</strong> 
+            {{ "%.2f"|format(total_amount / orders|length) }} ₽
+        </div>
+        {% else %}
+        <div class="info-item">
+            <strong>Нет данных для статистики</strong>
+        </div>
+        {% endif %}
+    </div>
 </div>
-{% endif %}
+
+<div class="card">
+    <h3><i class="fas fa-download"></i> Экспорт данных</h3>
+    <p>Выберите формат для экспорта отчета:</p>
+    <div class="export-options">
+        <button class="btn btn-secondary" onclick="alert('Экспорт в CSV будет реализован в следующей версии')">
+            <i class="fas fa-file-csv"></i> CSV
+        </button>
+        <button class="btn btn-secondary" onclick="alert('Экспорт в PDF будет реализован в следующей версии')">
+            <i class="fas fa-file-pdf"></i> PDF
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Функция для безопасного отображения примечаний
+    function showOrderNotes(orderId, productName, notes) {
+        // Экранируем специальные символы для безопасного отображения в alert
+        const safeNotes = notes.replace(/\\/g, '\\\\')
+                               .replace(/\n/g, '\\n')
+                               .replace(/'/g, "\\'")
+                               .replace(/"/g, '\\"');
+        
+        alert('Заказ #' + orderId + '\nТовар: ' + productName + '\n\nПримечания:\n' + safeNotes);
+    }
+</script>
 {% endblock %}

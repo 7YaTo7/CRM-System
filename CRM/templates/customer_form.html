@@ -1,67 +1,96 @@
 {% extends "base.html" %}
 
+{% block title %}{% if customer %}Редактирование клиента{% else %}Новый клиент{% endif %} - CRM System{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="mb-0">{% if customer %}Редактирование клиента{% else %}Добавление клиента{% endif %}</h2>
+<div class="header-actions">
+    <h2><i class="fas fa-user-edit"></i> {% if customer %}Редактирование клиента{% else %}Новый клиент{% endif %}</h2>
+    <a href="{{ url_for('customers') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Назад
+    </a>
+</div>
+
+<div class="card">
+    <form method="post" class="form">
+        <div class="form-group">
+            <label for="last_name">Фамилия</label>
+            <input type="text" 
+                   id="last_name" 
+                   name="last_name" 
+                   value="{{ customer.last_name if customer else '' }}" 
+                   required
+                   class="form-control">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="first_name">Имя</label>
+                <input type="text" 
+                       id="first_name" 
+                       name="first_name" 
+                       value="{{ customer.first_name if customer else '' }}" 
+                       required
+                       class="form-control">
             </div>
-            <div class="card-body">
-                <form method="post">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label for="last_name" class="form-label">Фамилия *</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" 
-                                   value="{{ customer.last_name if customer }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="first_name" class="form-label">Имя *</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name"
-                                   value="{{ customer.first_name if customer }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="middle_name" class="form-label">Отчество</label>
-                            <input type="text" class="form-control" id="middle_name" name="middle_name"
-                                   value="{{ customer.middle_name if customer }}">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                   value="{{ customer.email if customer }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label">Телефон</label>
-                            <input type="tel" class="form-control" id="phone" name="phone"
-                                   value="{{ customer.phone if customer }}">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="registration_date" class="form-label">Дата регистрации</label>
-                            <input type="date" class="form-control" id="registration_date" name="registration_date"
-                                   value="{{ customer.registration_date.strftime('%Y-%m-%d') if customer else '' }}">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Примечания</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ customer.notes if customer }}</textarea>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            {% if customer %}Сохранить изменения{% else %}Добавить клиента{% endif %}
-                        </button>
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
-                    </div>
-                </form>
+            
+            <div class="form-group">
+                <label for="middle_name">Отчество</label>
+                <input type="text" 
+                       id="middle_name" 
+                       name="middle_name" 
+                       value="{{ customer.middle_name if customer else '' }}" 
+                       class="form-control">
             </div>
         </div>
-    </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="tel" 
+                       id="phone" 
+                       name="phone" 
+                       value="{{ customer.phone if customer else '' }}" 
+                       required
+                       class="form-control"
+                       placeholder="+7 (XXX) XXX-XX-XX">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       value="{{ customer.email if customer else '' }}" 
+                       class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="registration_date">Дата регистрации</label>
+            <input type="date" 
+                   id="registration_date" 
+                   name="registration_date" 
+                   value="{{ customer.registration_date.strftime('%Y-%m-%d') if customer else '' }}" 
+                   required
+                   class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Примечания</label>
+            <textarea id="notes" 
+                      name="notes" 
+                      rows="4"
+                      class="form-control">{{ customer.notes if customer else '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Сохранить
+            </button>
+            <a href="{{ url_for('customers') }}" class="btn btn-secondary">
+                Отмена
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}
